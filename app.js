@@ -4,41 +4,77 @@ const itemForm = document.getElementById("itemForm");
 // ul HTML - "storage"
 const storage = document.getElementById("storage");
 
-// input fields for item and price.
+// input fields ( item and price. )
 const item = document.getElementById("item");
 const price = document.getElementById("price");
 
-//
-let itemObjArray = [];
+// Empty arrays for sections
+let storageArray = [];
+let storeArray = [];
+let soldArray = [];
 
 // KEYS for a local storage
 const storageKey = "storage";
 const storeKey = "store";
 const soldKey = "sold";
 
-// save to localStorage
+// function that save to localStorage
 function saveData(key) {
    if (key === storageKey) {
-      localStorage.setItem(storageKey, JSON.stringify(itemObjArray));
+      localStorage.setItem(storageKey, JSON.stringify(storageArray));
    } else if (key === storeKey) {
-      localStorage.setItem(storeKey, JSON.stringify(itemObjArray));
+      localStorage.setItem(storeKey, JSON.stringify(storeArray));
    } else {
-      localStorage.setItem(soldKey, JSON.stringify(itemObjArray));
+      localStorage.setItem(soldKey, JSON.stringify(storageArray));
    }
 }
 
+// function that move data from the store to sell
+
+function moveToSell() {}
+
+function paintStore(itemObj) {
+   // Create a row and move the selected row information from storage section to store section.
+
+   let table = document.getElementById("storeTable");
+   let row = table.insertRow(-1);
+   let cell1 = row.insertCell(0);
+   cell1.innerText = itemObj.id;
+   let cell2 = row.insertCell(1);
+   cell2.innerText = itemObj.item;
+   let cell3 = row.insertCell(2);
+   cell3.innerText = "$" + itemObj.price;
+   let cell4 = row.insertCell(3);
+
+   // Create a delete button
+   const moveButton = document.createElement("button");
+   moveButton.innerText = "Sell";
+   moveButton.addEventListener("click", moveToSell);
+
+   cell4.appendChild(moveButton);
+}
+
 function moveToStore(event) {
-   // select the row and remove
+   // get the row table HTMLs and id of a selected row.
    const row = event.target.parentElement.parentElement;
    const id = parseInt(row.firstChild.innerText);
    row.remove();
 
-   // filter the ones that are not selected for deletion
-   itemObjArray = itemObjArray.filter((itemObj) => itemObj.id !== parseInt(id));
-   localStorage.setItem(storageKey, JSON.stringify(itemObjArray));
+   // find the item from the storageArray and move to storeArray and save to the localStorage - store
+   const Arr = storageArray.filter((itemObj) => itemObj.id === id);
+   console.log(Arr);
+   console.log(storeArray);
+   storeArray.push(Arr[0]);
+   console.log(storeArray);
+
+   saveData(storeKey);
+
+   // filter out found item from the storageArray and save to the localStorage - storage
+   storageArray = storageArray.filter((itemObj) => itemObj.id !== id);
+   saveData(storageKey);
 }
 
-function addItem_Storage(itemObj) {
+function paintStorage(itemObj) {
    // Create a row
    let table = document.getElementById("storageTable");
    let row = table.insertRow(-1);
@@ -51,27 +87,11 @@ function addItem_Storage(itemObj) {
    let cell4 = row.insertCell(3);
 
    // Create a delete button
-   const deleteButton = document.createElement("button");
-   deleteButton.innerText = "Display";
-   deleteButton.addEventListener("click", moveToStore);
+   const moveButton = document.createElement("button");
+   moveButton.innerText = "Display";
+   moveButton.addEventListener("click", moveToStore);
 
-   // Append a delete button to the cell 3
-   cell4.appendChild(deleteButton);
-
-   console.log(itemObj);
-   // const li = document.createElement("li");
-   // li.id = itemObj.id;
-   // const span = document.createElement("span");
-   // span.innerText = itemObj.item + ": $" + itemObj.price.toString();
-   // const deleteButton = document.createElement("button");
-   // deleteButton.innerText = "Move to the Store";
-   // deleteButton.addEventListener("click", moveToStore);
-
-   // li.appendChild(span);
-   // li.appendChild(deleteButton);
-
-   // append to the storage section
-   // storage.appendChild(li);
+   cell4.appendChild(moveButton);
 }
 
 function handleStore(event) {
@@ -95,19 +115,34 @@ function handleStore(event) {
       item: itemVal,
       price: priveVal,
    };
-   itemObjArray.push(itemObj);
-   localStorage.setItem(storageKey, JSON.stringify(itemObjArray));
-   addItem_Storage(itemObj);
+   storageArray.push(itemObj);
+   localStorage.setItem(storageKey, JSON.stringify(storageArray));
+   paintStorage(itemObj);
 }
 
 itemForm.addEventListener("submit", handleStore);
 
 // When the page starts, it gets the data from the localStorage.
 
+//
 const savedStorage = localStorage.getItem(storageKey);
 
 if (savedStorage !== null) {
    const parsedSavedStorage = JSON.parse(savedStorage);
-   itemObjArray = parsedSavedStorage;
-   parsedSavedStorage.forEach(addItem_Storage);
+   storageArray = parsedSavedStorage;
+   parsedSavedStorage.forEach(paintStorage);
 }
+const savedStore = localStorage.getItem(storeKey);
+
+if (savedStore !== null) {
+   const parsedSavedStore = JSON.parse(savedStore);
+   storeArray = parsedSavedStore;
+   parsedSavedStore.forEach(paintStore);
+}
+// const savedSold = localStorage.getItem(soldKey);
+
+// if (savedSold !== null) {
+//    const parsedSavedSold = JSON.parse(savedSold);
+//    soldArray = parsedSavedSold;
+//    parsedSavedStorage.forEach(moveToSold);
+// }
